@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Amal Dev, cybersecurity</title>
+<meta name="description" content="Amal Dev is a cybersecurity graduate in Limerick, Ireland. ThreatRadar, MiniSOC, penetration testing work and background.">
+<meta property="og:title" content="Amal Dev, cybersecurity">
+<meta property="og:description" content="Detection tools, a home SOC lab and penetration testing work, plotted on one scope.">
+<meta name="theme-color" content="#EDF1EC">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%23EDF1EC' stroke='%231F6B59' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='7' fill='none' stroke='%231F6B59'/%3E%3Ccircle cx='21' cy='11' r='3.5' fill='%23D92D4B'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap" rel="stylesheet">
+
+<!--
+  EDITING NOTES
+  1. Email and CV: scroll to the bottom of this file and fill in CONTACT.
+     Leave a value empty and that link simply does not appear.
+  2. Everything on the radar comes from the BLIPS list at the bottom.
+     Add, remove or reword an entry there and the scope updates itself.
+  3. To host: put this file in a GitHub repo as index.html and switch on
+     Pages in the repo settings.
+-->
+
+<style>
+:root {
+  --paper: #EDF1EC;
+  --panel: #E2E9E1;
+  --ink: #13202A;
+  --muted: #4A5A63;
+  --grid: #2E8B74;
+  --grid-ink: #1F6B59;
+  --plot: #2146D0;
+  --live: #D92D4B;
+  --font: "Archivo", "Helvetica Neue", Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 1.0625rem;
+  line-height: 1.55;
+}
+
+a { color: var(--plot); text-underline-offset: 0.18em; text-decoration-thickness: 1.5px; }
+a:hover { text-decoration-thickness: 3px; }
+
+:focus-visible { outline: 3px solid var(--plot); outline-offset: 3px; border-radius: 2px; }
+
+p { margin: 0 0 1em; max-width: 62ch; }
+h1, h2, h3 { margin: 0; }
+
+.wrap { width: min(100% - 2.5rem, 1180px); margin-inline: auto; }
+
+.skip {
+  position: absolute; left: 1rem; top: -4rem;
+  background: var(--ink); color: var(--paper);
+  padding: 0.6rem 1rem; z-index: 10;
+}
+.skip:focus { top: 1rem; }
+
+/* ---------- top bar ---------- */
+
+.top {
+  display: flex; justify-content: space-between; align-items: baseline;
+  gap: 1rem; padding-block: 1.25rem;
+  font-size: 0.95rem;
+}
+.top__place { color: var(--muted); margin: 0; }
+.top nav { display: flex; gap: 1.5rem; }
+.top nav a { color: var(--ink); font-weight: 600; text-decoration: none; }
+.top nav a:hover { text-decoration: underline; text-decoration-thickness: 2px; }
+
+/* ---------- hero ---------- */
+
+.hero {
+  display: grid;
+  gap: 2rem;
+  grid-template-areas: "intro" "scope" "readout";
+  padding-block: 1rem 0;
+}
+
+.hero__intro { grid-area: intro; }
+.hero__scope { grid-area: scope; margin: 0; }
+.readout { grid-area: readout; }
+
+.hero h1 {
+  font-size: clamp(4.5rem, 23vw, 8rem);
+  font-stretch: 125%;
+  font-weight: 800;
+  line-height: 0.86;
+  letter-spacing: -0.035em;
+  margin-left: -0.04em;
+}
+
+.hero__lede {
+  font-size: clamp(1.2rem, 2.1vw, 1.45rem);
+  line-height: 1.35;
+  font-weight: 500;
+  margin: 1.5rem 0 0.75rem;
+  max-width: 28ch;
+}
+.hero__open { color: var(--muted); max-width: 40ch; margin-bottom: 1.5rem; }
+
+.actions { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.btn {
+  display: inline-block;
+  padding: 0.7rem 1.25rem;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  color: var(--ink);
+  font-weight: 650;
+  text-decoration: none;
+  line-height: 1.2;
+}
+.btn:hover { background: var(--ink); color: var(--paper); }
+.btn--solid { background: var(--ink); color: var(--paper); }
+.btn--solid:hover { background: var(--plot); border-color: var(--plot); }
+
+/* ---------- scope ---------- */
+
+.scope {
+  position: relative;
+  aspect-ratio: 1;
+  width: 100%;
+  max-width: 660px;
+  margin-inline: auto;
+}
+.scope svg { display: block; width: 100%; height: 100%; overflow: visible; }
+
+.scope__sweep {
+  position: absolute;
+  inset: 7.8125%;
+  border-radius: 50%;
+  pointer-events: none;
+  background: conic-gradient(from 0deg,
+    rgba(46, 139, 116, 0) 0deg,
+    rgba(46, 139, 116, 0) 285deg,
+    rgba(46, 139, 116, 0.30) 360deg);
+  transform: rotate(300deg);
+}
+.scope__sweep::after {
+  content: "";
+  position: absolute; left: 50%; top: 0;
+  width: 2px; height: 50%;
+  margin-left: -1px;
+  background: var(--grid-ink);
+  opacity: 0.7;
+}
+
+.g-ring { fill: none; stroke: var(--grid); stroke-width: 1.25; opacity: 0.6; }
+.g-ring--outer { stroke-width: 2.5; opacity: 1; stroke: var(--grid-ink); }
+.g-core { fill: var(--grid); opacity: 0.08; }
+.g-axis { stroke: var(--grid); stroke-width: 1.25; opacity: 0.6; }
+.g-ticks { fill: none; stroke: var(--grid-ink); stroke-width: 9; stroke-dasharray: 1.3 22.611; opacity: 0.55; }
+
+.g-ringlabel {
+  font-size: 12.5px; font-weight: 500; font-stretch: 88%;
+  fill: var(--grid-ink);
+  paint-order: stroke; stroke: var(--paper); stroke-width: 4px; stroke-linejoin: round;
+}
+.g-sector {
+  font-size: 15.5px; font-weight: 750; font-stretch: 112%;
+  fill: var(--grid-ink); letter-spacing: 0.01em;
+}
+
+.blip { cursor: pointer; outline: none; }
+.blip__hit { fill: transparent; }
+.blip__echo { fill: none; stroke: var(--grid-ink); stroke-width: 1.5; opacity: 0; pointer-events: none; }
+.blip__dot { fill: var(--ink); }
+.blip--live .blip__dot { fill: var(--live); }
+.blip__halo { fill: none; stroke: var(--plot); stroke-width: 2.25; opacity: 0; }
+.blip text {
+  font-size: 14px; font-weight: 600; font-stretch: 88%;
+  fill: var(--ink);
+  paint-order: stroke; stroke: var(--paper); stroke-width: 5px; stroke-linejoin: round;
+}
+.blip--big text { font-size: 15.5px; font-weight: 800; font-stretch: 100%; }
+.blip:hover text, .blip.is-selected text { fill: var(--plot); }
+.blip.is-selected .blip__halo { opacity: 1; }
+.blip:focus-visible .blip__halo { opacity: 1; stroke-width: 4; }
+
+.scope__foot {
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline;
+  gap: 0.5rem 1.5rem;
+  max-width: 660px; margin: 0.5rem auto 0;
+  font-size: 0.9rem; color: var(--muted);
+}
+.scope__foot p { margin: 0; max-width: 46ch; }
+.linkbtn {
+  font: inherit; color: var(--ink); font-weight: 600;
+  background: none; border: 0; padding: 0.25rem 0; cursor: pointer;
+  text-decoration: underline; text-underline-offset: 0.18em;
+}
+
+/* ---------- readout ---------- */
+
+.readout {
+  border-top: 3px solid var(--ink);
+  padding-top: 0.9rem;
+  min-height: 13.5rem;
+}
+.readout__meta {
+  display: flex; justify-content: space-between; gap: 1rem;
+  font-size: 0.9rem; font-weight: 650;
+}
+.readout__sector { color: var(--grid-ink); }
+.readout__status { color: var(--muted); }
+.readout__status.is-live { color: var(--live); }
+.readout__status.is-live::before {
+  content: ""; display: inline-block; width: 0.55em; height: 0.55em;
+  border-radius: 50%; background: var(--live); margin-right: 0.45em; vertical-align: 0.08em;
+}
+.readout__name {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-stretch: 118%; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1;
+  margin: 0.5rem 0 0.15rem; max-width: none;
+}
+.readout__when { color: var(--muted); font-size: 0.95rem; margin-bottom: 0.6rem; }
+.readout__text { margin-bottom: 0.9rem; max-width: 46ch; }
+.readout__foot {
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.75rem 1.5rem;
+  font-size: 0.95rem;
+}
+.stepper { display: flex; align-items: center; gap: 0.75rem; }
+.stepper__count { color: var(--muted); font-variant-numeric: tabular-nums; min-width: 4.5em; text-align: center; }
+
+/* ---------- sections ---------- */
+
+.section { padding-top: clamp(4.5rem, 10vw, 8rem); }
+.section > h2 {
+  font-size: clamp(2.25rem, 6vw, 4rem);
+  font-stretch: 125%; font-weight: 800; letter-spacing: -0.03em; line-height: 1;
+  margin-bottom: clamp(2rem, 4vw, 3rem);
+}
+
+.piece { display: grid; gap: 1.75rem 3.5rem; padding-bottom: clamp(3rem, 6vw, 4.5rem); }
+.piece__head { display: flex; align-items: center; gap: 0.85rem; margin-bottom: 0.4rem; }
+.piece__head h3 {
+  font-size: clamp(1.6rem, 3.4vw, 2.25rem);
+  font-stretch: 118%; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1;
+}
+.mini { flex: none; width: 2.5rem; height: 2.5rem; }
+.mini svg { display: block; width: 100%; height: 100%; }
+.piece__sub { font-size: 1.15rem; font-weight: 500; color: var(--muted); margin-bottom: 1.1rem; }
+.piece__aside { align-self: start; }
+
+.tag-live { color: var(--live); font-weight: 650; font-size: 0.95rem; white-space: nowrap; }
+.tag-live::before {
+  content: ""; display: inline-block; width: 0.55em; height: 0.55em;
+  border-radius: 50%; background: var(--live); margin-right: 0.45em; vertical-align: 0.08em;
+}
+
+.facts { margin: 0; padding: 0; list-style: none; font-size: 0.98rem; }
+.facts li { padding: 0.5rem 0; border-top: 1px solid rgba(19, 32, 42, 0.16); display: flex; gap: 1rem; justify-content: space-between; }
+.facts li span:first-child { color: var(--muted); }
+.facts li span:last-child { text-align: right; font-weight: 600; }
+
+.tests { margin-bottom: 1.5rem; }
+.tests__ticks { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 0.5rem; }
+.tests__ticks i { width: 9px; height: 30px; background: var(--grid); border-radius: 1px; }
+.tests__label { font-weight: 700; margin: 0; }
+.tests__label span { color: var(--muted); font-weight: 400; }
+
+.ecg { display: block; width: 100%; max-width: 22rem; margin-bottom: 1.25rem; }
+.ecg polyline { fill: none; stroke: #1C7A99; stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+
+/* pipeline diagram */
+.pipe { display: grid; justify-items: start; }
+.pipe__node {
+  border: 1.5px solid var(--ink); padding: 0.7rem 1rem; width: 100%; max-width: 22rem;
+  background: var(--paper);
+}
+.pipe__node strong { display: block; font-stretch: 110%; }
+.pipe__node span { color: var(--muted); font-size: 0.92rem; }
+.pipe__node--attack { border-color: var(--live); }
+.pipe__node--sink { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.pipe__node--sink span { color: #B9C7C2; }
+.pipe__link {
+  position: relative; margin-left: 2rem; padding: 0.85rem 0 1.1rem 1.25rem;
+  border-left: 1.5px solid var(--ink);
+  font-size: 0.92rem; color: var(--muted);
+}
+.pipe__link::after {
+  content: ""; position: absolute; left: -6.5px; bottom: 0;
+  border: 6px solid transparent; border-top: 9px solid var(--ink); border-bottom: 0;
+}
+.pipe__note { font-size: 0.92rem; color: var(--muted); margin: 0.9rem 0 0; }
+
+.pair { display: grid; gap: 2.5rem 3.5rem; }
+.pair h3 {
+  font-size: 1.35rem; font-stretch: 112%; font-weight: 750; letter-spacing: -0.01em; line-height: 1.2;
+}
+.pair .piece__head { margin-bottom: 0.6rem; }
+
+/* background */
+.timeline { list-style: none; margin: 0; padding: 0; }
+.timeline li { display: grid; gap: 0.15rem 2rem; padding: 1.1rem 0; border-top: 1px solid rgba(19, 32, 42, 0.16); }
+.timeline li:first-child { border-top: 3px solid var(--ink); }
+.timeline__when { color: var(--muted); font-stretch: 88%; font-variant-numeric: tabular-nums; margin: 0; }
+.timeline h3 { font-size: 1.2rem; font-weight: 700; line-height: 1.25; }
+.timeline p:last-child { margin: 0.2rem 0 0; }
+
+.cols { display: grid; gap: 3rem 3.5rem; }
+.sub {
+  font-size: 1.35rem; font-stretch: 112%; font-weight: 750; letter-spacing: -0.01em;
+  margin-bottom: 0.9rem;
+}
+.plain { margin: 0 0 2.5rem; padding: 0; list-style: none; }
+.plain li { padding: 0.6rem 0; border-top: 1px solid rgba(19, 32, 42, 0.16); }
+.plain li strong { display: block; }
+.plain li span { color: var(--muted); font-size: 0.95rem; }
+
+.kit { margin: 0; }
+.kit div { display: grid; grid-template-columns: 5.5rem 1fr; gap: 1rem; padding: 0.6rem 0; border-top: 1px solid rgba(19, 32, 42, 0.16); }
+.kit dt { color: var(--grid-ink); font-weight: 700; }
+.kit dd { margin: 0; }
+
+/* contact */
+.contact { padding-bottom: clamp(3rem, 8vw, 6rem); }
+.contact__links {
+  display: flex; flex-wrap: wrap; gap: 0.25rem 2.5rem;
+  margin: 1.5rem 0 0; padding: 0; list-style: none;
+  font-size: clamp(1.6rem, 4.6vw, 3rem);
+  font-stretch: 118%; font-weight: 800; letter-spacing: -0.02em; line-height: 1.25;
+}
+.contact__links a { color: var(--ink); text-decoration-thickness: 3px; text-decoration-color: var(--grid); }
+.contact__links a:hover { color: var(--plot); text-decoration-color: var(--plot); }
+
+footer { border-top: 1px solid rgba(19, 32, 42, 0.16); padding-block: 1.25rem 2rem; color: var(--muted); font-size: 0.9rem; }
+footer p { margin: 0; }
+
+/* ---------- wider screens ---------- */
+
+@media (min-width: 720px) {
+  .timeline li { grid-template-columns: 13rem 1fr; }
+  .pair { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (min-width: 940px) {
+  .hero {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    grid-template-rows: auto 1fr;
+    grid-template-areas: "intro scope" "readout scope";
+    column-gap: 3rem;
+  }
+  .hero h1 { font-size: clamp(6rem, 11.5vw, 10rem); }
+  .readout { align-self: end; margin-bottom: 2.4rem; }
+  .piece { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
+  .cols { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
+}
+
+/* On small scopes the labels would be too small to read, so only the
+   selected one shows and the Previous / Next buttons do the browsing. */
+@media (max-width: 620px) {
+  .blip text { display: none; }
+  .blip.is-selected text { display: block; font-size: 22px; }
+  .g-ringlabel { font-size: 18px; }
+  .g-sector { font-size: 19px; }
+  .top__place { display: none; }
+  .top { justify-content: flex-end; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .scope__sweep, #sweepToggle { display: none; }
+}
+</style>
+</head>
+
+<body id="top">
+<a class="skip" href="#work">Skip to the work</a>
+
+<div class="wrap">
+
+  <header class="top">
+    <p class="top__place">Limerick, Ireland</p>
+    <nav aria-label="Sections">
+      <a href="#work">Work</a>
+      <a href="#background">Background</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </header>
+
+  <main>
+
+    <!-- ============ HERO ============ -->
+    <div class="hero">
+
+      <div class="hero__intro">
+        <h1>Amal<br>Dev</h1>
+        <p class="hero__lede">Cybersecurity graduate. I build tools that detect attacks, and labs where I practise catching them.</p>
+        <p class="hero__open">Now working in customer operations in Limerick, and open to conversations about SOC analyst, junior penetration tester and security analyst roles in Ireland.</p>
+        <div class="actions">
+          <a class="btn btn--solid" href="#work">See the work</a>
+          <a class="btn" href="https://github.com/AmalDev313" rel="noopener">GitHub</a>
+          <a class="btn" href="https://www.linkedin.com/in/amal-dev-62826a33a" rel="noopener">LinkedIn</a>
+        </div>
+      </div>
+
+      <figure class="hero__scope">
+        <div class="scope" id="scope">
+          <svg viewBox="0 0 640 640" role="group" aria-label="Radar chart of Amal's work. Each point is a project, job or qualification.">
+            <defs>
+              <path id="arcTop" d="M 36 320 A 284 284 0 0 1 604 320"/>
+              <path id="arcBottom" d="M 22 320 A 298 298 0 0 0 618 320"/>
+            </defs>
+
+            <circle class="g-core" cx="320" cy="320" r="100"/>
+            <circle class="g-ticks" cx="320" cy="320" r="264.5"/>
+            <circle class="g-ring" cx="320" cy="320" r="100"/>
+            <circle class="g-ring" cx="320" cy="320" r="185"/>
+            <circle class="g-ring g-ring--outer" cx="320" cy="320" r="270"/>
+            <line class="g-axis" x1="320" y1="50" x2="320" y2="590"/>
+            <line class="g-axis" x1="50" y1="320" x2="590" y2="320"/>
+
+            <text class="g-ringlabel" x="327" y="236">in progress</text>
+            <text class="g-ringlabel" x="327" y="151">completed</text>
+            <text class="g-ringlabel" x="327" y="66">earlier</text>
+
+            <text class="g-sector" text-anchor="middle"><textPath href="#arcTop" startOffset="25%">Detect and respond</textPath></text>
+            <text class="g-sector" text-anchor="middle"><textPath href="#arcTop" startOffset="75%">Attack</textPath></text>
+            <text class="g-sector" text-anchor="middle"><textPath href="#arcBottom" startOffset="25%">Build</textPath></text>
+            <text class="g-sector" text-anchor="middle"><textPath href="#arcBottom" startOffset="75%">Study</textPath></text>
+
+            <g id="blips"></g>
+          </svg>
+          <div class="scope__sweep" id="sweep" aria-hidden="true"></div>
+        </div>
+        <figcaption class="scope__foot">
+          <p>Direction is the kind of work. Distance is how recent it is: the centre is what's on my desk now.</p>
+          <button class="linkbtn" id="sweepToggle" type="button">Pause sweep</button>
+        </figcaption>
+      </figure>
+
+      <section class="readout" aria-label="Selected item">
+        <div aria-live="polite">
+          <div class="readout__meta">
+            <span class="readout__sector" id="roSector">Build</span>
+            <span class="readout__status" id="roStatus">Completed</span>
+          </div>
+          <p class="readout__name" id="roName">ThreatRadar</p>
+          <p class="readout__when" id="roWhen">MSc dissertation, 2025 to 2026</p>
+          <p class="readout__text" id="roText">Android app that detects four kinds of Wi-Fi attack in real time, including DNS hijacking without root access.</p>
+        </div>
+        <div class="readout__foot">
+          <a id="roLink" href="#threatradar">Read more below</a>
+          <div class="stepper">
+            <button class="linkbtn" id="prev" type="button">Previous</button>
+            <span class="stepper__count" id="roCount">1 of 13</span>
+            <button class="linkbtn" id="next" type="button">Next</button>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- ============ WORK ============ -->
+    <section class="section" id="work">
+      <h2>Work</h2>
+
+      <article class="piece" id="threatradar">
+        <div>
+          <div class="piece__head"><span class="mini" data-mini="threatradar"></span><h3>ThreatRadar</h3></div>
+          <p class="piece__sub">An Android app that detects Wi-Fi attacks as they happen.</p>
+          <p>This was my MSc dissertation. ThreatRadar watches the network your phone is connected to and warns you when something is wrong. It detects four types of attack, and it keeps monitoring in the background.</p>
+          <p>The part I'm proudest of is the DNS hijacking check. It works on a normal, unrooted phone, and that method was the original contribution of the dissertation.</p>
+          <p>To prove it worked I built an attack bench: Kali Linux in VirtualBox with an Alfa AWUS036ACM adapter, running live wireless attacks against the phone.</p>
+          <p><a href="https://github.com/AmalDev313" rel="noopener">Code on GitHub</a></p>
+        </div>
+        <div class="piece__aside">
+          <div class="tests">
+            <div class="tests__ticks" id="ticks" role="img" aria-label="39 of 39 test cases passed"></div>
+            <p class="tests__label">39 of 39 <span>test cases passed</span></p>
+          </div>
+          <ul class="facts">
+            <li><span>Language</span><span>Kotlin</span></li>
+            <li><span>Architecture</span><span>MVVM</span></li>
+            <li><span>Backend</span><span>Firebase, Firestore</span></li>
+            <li><span>Needs root</span><span>No</span></li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="piece" id="minisoc">
+        <div>
+          <div class="piece__head"><span class="mini" data-mini="minisoc"></span><h3>MiniSOC</h3><span class="tag-live">In progress</span></div>
+          <p class="piece__sub">A security operations centre that fits on one laptop.</p>
+          <p>I wanted to practise the defender's side properly, so I built a lab where I can attack a machine and then go and find that attack in the logs.</p>
+          <p>A Kali attacker and a Metasploitable target sit on a host-only network in VirtualBox. The target forwards its system logs, plus the Apache logs from DVWA, to Splunk on the Windows host.</p>
+          <p>Still to come: detection rules mapped to MITRE ATT&amp;CK, attack simulation with Atomic Red Team, and a written triage note for each alert.</p>
+        </div>
+        <div class="piece__aside">
+          <div class="pipe" role="img" aria-label="Diagram: Kali Linux attacks Metasploitable and DVWA, which send logs over syslog to Splunk.">
+            <div class="pipe__node pipe__node--attack"><strong>Kali Linux</strong><span>The attacker</span></div>
+            <div class="pipe__link">attacks</div>
+            <div class="pipe__node"><strong>Metasploitable and DVWA</strong><span>The target, logging through rsyslog</span></div>
+            <div class="pipe__link">syslog over UDP, port 1514</div>
+            <div class="pipe__node pipe__node--sink"><strong>Splunk</strong><span>Search and detection, on the Windows host</span></div>
+          </div>
+          <p class="pipe__note">Both virtual machines run in VirtualBox with a NAT adapter for internet and a host-only adapter for the lab traffic.</p>
+        </div>
+      </article>
+
+      <article class="piece" id="website">
+        <div>
+          <div class="piece__head"><span class="mini" data-mini="website"></span><h3>Sri Durga Home Nursing Service</h3></div>
+          <p class="piece__sub">A live website for a home care business in Palakkad, Kerala.</p>
+          <p>A real client site that I designed and built from scratch. Families use it to see which kinds of care are on offer, then call, message on WhatsApp or send an enquiry.</p>
+          <p>Service names appear in Malayalam as well as English. The enquiry form sends without reloading the page, and there's a map and one-tap call buttons for people on their phones.</p>
+          <p><a href="https://sridurgahomenursingservice-lab.github.io/sridurga-home-nursing/" rel="noopener">Visit the live site</a></p>
+        </div>
+        <div class="piece__aside">
+          <svg class="ecg" viewBox="0 0 320 64" aria-hidden="true">
+            <polyline points="0,40 70,40 82,40 90,30 98,40 112,40 120,52 130,6 140,58 148,40 170,40 182,28 196,40 320,40"/>
+          </svg>
+          <ul class="facts">
+            <li><span>Client</span><span>Home care business</span></li>
+            <li><span>Languages</span><span>English, Malayalam</span></li>
+            <li><span>Hosting</span><span>GitHub Pages</span></li>
+            <li><span>Status</span><span>Live</span></li>
+          </ul>
+        </div>
+      </article>
+
+      <div class="pair">
+        <article id="cheatsheets">
+          <div class="piece__head"><span class="mini" data-mini="cheatsheets"></span><h3>Penetration testing cheat sheets</h3></div>
+          <p>An interactive reference I wrote while preparing for the CPT exam. It covers nmap, web application attacks, Active Directory attacks, privilege escalation, pivoting and hash cracking.</p>
+        </article>
+        <article id="practice">
+          <div class="piece__head"><span class="mini" data-mini="ctf"></span><h3>CTFs and labs</h3></div>
+          <p>I practise on TryHackMe, HackTheBox and PortSwigger. Recent challenges covered local file inclusion and blind SQL injection, and I'm working through TryHackMe's SOC Level 1 path.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- ============ BACKGROUND ============ -->
+    <section class="section" id="background">
+      <h2>Background</h2>
+
+      <div class="cols">
+        <ol class="timeline">
+          <li>
+            <p class="timeline__when">Oct 2026 to now</p>
+            <div>
+              <h3>Customer Operations Specialist, Covalen</h3>
+              <p>Limerick. Permanent, full time. Working on a financial services account, handling sensitive customer information.</p>
+            </div>
+          </li>
+          <li>
+            <p class="timeline__when">2025 to 2026</p>
+            <div>
+              <h3>MSc Network and Information Security</h3>
+              <p>Griffith College Limerick. Finished with 72%. Dissertation: ThreatRadar.</p>
+            </div>
+          </li>
+          <li>
+            <p class="timeline__when">Sep 2023 to Feb 2024</p>
+            <div>
+              <h3>Technology Intern, Dreamx Ventures</h3>
+              <p>Technical liaison between the engineering and supply chain teams.</p>
+            </div>
+          </li>
+          <li>
+            <p class="timeline__when">May 2022 to Aug 2023</p>
+            <div>
+              <h3>Developer and Support Analyst, Tata Consultancy Services</h3>
+              <p>Graduate trainee. L2 and L3 application support, working incidents through ServiceNow.</p>
+            </div>
+          </li>
+          <li>
+            <p class="timeline__when">2018 to 2021</p>
+            <div>
+              <h3>BCA Computer Applications</h3>
+              <p>AJK College of Arts and Science, India. First class, 74%.</p>
+            </div>
+          </li>
+        </ol>
+
+        <div>
+          <h3 class="sub" id="certifications">Certifications</h3>
+          <ul class="plain">
+            <li><strong>Certified Penetration Tester (CPT v4)</strong><span>RedTeam Hacker Academy, September 2026</span></li>
+            <li><strong>CompTIA Security+ (SY0-701)</strong><span>Studying now</span></li>
+            <li><strong>Cisco CCNA (200-301)</strong><span>Planned next</span></li>
+          </ul>
+
+          <h3 class="sub">What I work with</h3>
+          <dl class="kit">
+            <div><dt>Detect</dt><dd>Splunk, rsyslog, ServiceNow</dd></div>
+            <div><dt>Attack</dt><dd>Kali Linux, nmap, Metasploitable, DVWA</dd></div>
+            <div><dt>Build</dt><dd>Kotlin, Firebase, Python, TypeScript, React Native, Java</dd></div>
+            <div><dt>Lab</dt><dd>VirtualBox, Docker, Linux</dd></div>
+            <div><dt>Speak</dt><dd>English, Hindi, Malayalam, Tamil</dd></div>
+          </dl>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ CONTACT ============ -->
+    <section class="section contact" id="contact">
+      <h2>Contact</h2>
+      <p>I'm based in Limerick and always happy to talk about security roles across Ireland. LinkedIn is the quickest way to reach me.</p>
+      <ul class="contact__links" id="contactLinks">
+        <li><a href="https://www.linkedin.com/in/amal-dev-62826a33a" rel="noopener">LinkedIn</a></li>
+        <li><a href="https://github.com/AmalDev313" rel="noopener">GitHub</a></li>
+      </ul>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>Amal Dev, Limerick, 2026</p>
+  </footer>
+
+</div>
+
+<script>
+/* ------------------------------------------------------------------
+   FILL THESE IN. Leave a value as "" and its link will not be shown.
+   cv should be the file name of a PDF sitting next to index.html.
+------------------------------------------------------------------ */
+const CONTACT = {
+  email: "",
+  cv: ""
+};
+
+/* ------------------------------------------------------------------
+   Everything plotted on the radar.
+   sector: detect | attack | study | build
+   ring:   0 = in progress, 1 = completed, 2 = earlier
+   angle:  degrees clockwise from the top. Keep it inside the sector:
+           attack 0-90, study 90-180, build 180-270, detect 270-360
+   label:  where the name sits next to the dot
+------------------------------------------------------------------ */
+const BLIPS = [
+  { id: "threatradar", name: "ThreatRadar", sector: "build", ring: 1, angle: 255, big: true,
+    when: "MSc dissertation, 2025 to 2026",
+    text: "Android app that detects four kinds of Wi-Fi attack in real time, including DNS hijacking without root access.",
+    href: "#threatradar", label: { anchor: "end", dx: -20, dy: 5 } },
+
+  { id: "minisoc", name: "MiniSOC", sector: "detect", ring: 0, angle: 300, big: true,
+    when: "2026, ongoing",
+    text: "Home SOC lab. A Kali attacker, a Metasploitable target and Splunk collecting the logs, so I can attack a box and then find the attack.",
+    href: "#minisoc", label: { anchor: "end", dx: -18, dy: 5 } },
+
+  { id: "socl1", name: "TryHackMe SOC Level 1", sector: "detect", ring: 0, angle: 340, r: 68,
+    when: "2026, ongoing",
+    text: "TryHackMe's SOC Level 1 path, worked through alongside the MiniSOC build.",
+    href: "#practice", label: { anchor: "end", dx: -15, dy: 3 } },
+
+  { id: "ctf", name: "CTFs and labs", sector: "attack", ring: 0, angle: 60,
+    when: "Ongoing",
+    text: "Practice on TryHackMe, HackTheBox and PortSwigger. Recent challenges: local file inclusion and blind SQL injection.",
+    href: "#practice", label: { anchor: "start", dx: 12, dy: 5 } },
+
+  { id: "cheatsheets", name: "Pentest cheat sheets", sector: "attack", ring: 1, angle: 40,
+    when: "Written for CPT exam prep",
+    text: "Interactive reference covering nmap, web attacks, Active Directory, privilege escalation, pivoting and hash cracking.",
+    href: "#cheatsheets", label: { anchor: "start", dx: 12, dy: 5 } },
+
+  { id: "cpt", name: "CPT v4", sector: "study", ring: 1, angle: 100,
+    when: "September 2026",
+    text: "Certified Penetration Tester (CPT v4), RedTeam Hacker Academy.",
+    href: "#certifications", label: { anchor: "start", dx: 12, dy: 5 } },
+
+  { id: "secplus", name: "Security+", sector: "study", ring: 0, angle: 140,
+    when: "Studying now",
+    text: "CompTIA Security+ (SY0-701).",
+    href: "#certifications", label: { anchor: "start", dx: 12, dy: 5 } },
+
+  { id: "ccna", name: "CCNA", sector: "study", ring: 0, angle: 112,
+    when: "Planned next",
+    text: "Cisco CCNA (200-301), lined up after Security+.",
+    href: "#certifications", label: { anchor: "start", dx: 12, dy: 5 } },
+
+  { id: "msc", name: "MSc, Griffith College", sector: "study", ring: 1, angle: 150,
+    when: "2025 to 2026",
+    text: "MSc Network and Information Security, Griffith College Limerick. Finished with 72%.",
+    href: "#background", label: { anchor: "start", dx: 12, dy: 5 } },
+
+  { id: "website", name: "Home nursing website", sector: "build", ring: 1, angle: 210,
+    when: "Client project, live now",
+    text: "Website for a home care business in Palakkad, Kerala. English and Malayalam, with an enquiry form, map and one-tap calling.",
+    href: "#website", label: { anchor: "middle", dx: -14, dy: 24 } },
+
+  { id: "dreamx", name: "Dreamx Ventures", sector: "build", ring: 2, angle: 215,
+    when: "September 2023 to February 2024",
+    text: "Technology intern. Technical liaison between the engineering and supply chain teams.",
+    href: "#background", label: { anchor: "start", dx: 12, dy: 5 } },
+
+  { id: "tcs", name: "TCS", sector: "build", ring: 2, angle: 245,
+    when: "May 2022 to August 2023",
+    text: "Developer and support analyst at Tata Consultancy Services. L2 and L3 application support through ServiceNow.",
+    href: "#background", label: { anchor: "end", dx: -12, dy: 5 } },
+
+  { id: "bca", name: "BCA", sector: "study", ring: 2, angle: 112,
+    when: "2018 to 2021",
+    text: "BCA Computer Applications, AJK College of Arts and Science. First class, 74%.",
+    href: "#background", label: { anchor: "start", dx: 12, dy: 5 } }
+];
+
+const SECTOR_NAMES = { detect: "Detect and respond", attack: "Attack", study: "Study", build: "Build" };
+const RING_NAMES = ["In progress", "Completed", "Earlier"];
+const RING_RADIUS = [62, 142, 228];
+const CX = 320, CY = 320, OUTER = 270;
+const NS = "http://www.w3.org/2000/svg";
+
+function place(b, scale = 1, cx = CX, cy = CY) {
+  const a = b.angle * Math.PI / 180;
+  const r = (b.r || RING_RADIUS[b.ring]) * scale;
+  return [cx + r * Math.sin(a), cy - r * Math.cos(a)];
+}
+
+function el(name, attrs = {}, parent) {
+  const node = document.createElementNS(NS, name);
+  for (const k in attrs) node.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(node);
+  return node;
+}
+
+/* ---------- draw the blips ---------- */
+
+const layer = document.getElementById("blips");
+let selected = 0;
+
+BLIPS.forEach((b, i) => {
+  const [x, y] = place(b);
+  const g = el("g", {
+    class: "blip" + (b.ring === 0 ? " blip--live" : "") + (b.big ? " blip--big" : ""),
+    tabindex: "0", role: "button",
+    "aria-label": `${b.name}. ${SECTOR_NAMES[b.sector]}, ${RING_NAMES[b.ring].toLowerCase()}.`
+  }, layer);
+  el("circle", { class: "blip__hit", cx: x, cy: y, r: 24 }, g);
+  b.echo = el("circle", { class: "blip__echo", cx: x, cy: y, r: 8 }, g);
+  el("circle", { class: "blip__halo", cx: x, cy: y, r: b.big ? 14 : 12 }, g);
+  el("circle", { class: "blip__dot", cx: x, cy: y, r: b.big ? 7.5 : 5.5 }, g);
+  const t = el("text", { x: x + b.label.dx, y: y + b.label.dy, "text-anchor": b.label.anchor }, g);
+  t.textContent = b.name;
+  b.node = g;
+
+  g.addEventListener("click", () => select(i));
+  g.addEventListener("focus", () => select(i));
+  g.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); select(i); }
+    if (e.key === "ArrowRight" || e.key === "ArrowDown") { e.preventDefault(); step(1, true); }
+    if (e.key === "ArrowLeft" || e.key === "ArrowUp") { e.preventDefault(); step(-1, true); }
+  });
+});
+
+/* ---------- readout ---------- */
+
+const ro = {
+  sector: document.getElementById("roSector"),
+  status: document.getElementById("roStatus"),
+  name: document.getElementById("roName"),
+  when: document.getElementById("roWhen"),
+  text: document.getElementById("roText"),
+  link: document.getElementById("roLink"),
+  count: document.getElementById("roCount")
+};
+
+function select(i) {
+  selected = i;
+  const b = BLIPS[i];
+  BLIPS.forEach((o, n) => o.node.classList.toggle("is-selected", n === i));
+  layer.appendChild(b.node); // bring the selected label to the front
+  ro.sector.textContent = SECTOR_NAMES[b.sector];
+  ro.status.textContent = RING_NAMES[b.ring];
+  ro.status.classList.toggle("is-live", b.ring === 0);
+  ro.name.textContent = b.name;
+  ro.when.textContent = b.when;
+  ro.text.textContent = b.text;
+  ro.link.href = b.href;
+  ro.count.textContent = `${i + 1} of ${BLIPS.length}`;
+}
+
+function step(dir, moveFocus) {
+  const i = (selected + dir + BLIPS.length) % BLIPS.length;
+  select(i);
+  if (moveFocus) BLIPS[i].node.focus();
+}
+
+document.getElementById("prev").addEventListener("click", () => step(-1));
+document.getElementById("next").addEventListener("click", () => step(1));
+select(0);
+
+/* ---------- the sweep ---------- */
+
+const sweep = document.getElementById("sweep");
+const toggle = document.getElementById("sweepToggle");
+const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const PERIOD = 7000; // milliseconds per turn
+let angle = 300, last = null, raf = null, userPaused = false, inView = true;
+
+function frame(now) {
+  if (last !== null) angle = (angle + (now - last) * 360 / PERIOD) % 360;
+  last = now;
+  sweep.style.transform = `rotate(${angle}deg)`;
+  for (const b of BLIPS) {
+    const behind = (angle - b.angle + 360) % 360;
+    const k = behind < 80 ? 1 - behind / 80 : 0;
+    b.echo.setAttribute("r", 8 + (1 - k) * 18);
+    b.echo.style.opacity = (k * 0.6).toFixed(3);
+  }
+  raf = requestAnimationFrame(frame);
+}
+
+function start() { if (raf === null && !reduced) { last = null; raf = requestAnimationFrame(frame); } }
+function stop() { if (raf !== null) { cancelAnimationFrame(raf); raf = null; } }
+
+toggle.addEventListener("click", () => {
+  userPaused = !userPaused;
+  toggle.textContent = userPaused ? "Resume sweep" : "Pause sweep";
+  userPaused ? stop() : (inView && start());
+});
+
+if ("IntersectionObserver" in window) {
+  new IntersectionObserver(([entry]) => {
+    inView = entry.isIntersecting;
+    inView && !userPaused ? start() : stop();
+  }).observe(document.getElementById("scope"));
+} else {
+  start();
+}
+
+/* ---------- small scopes next to each project heading ---------- */
+
+document.querySelectorAll("[data-mini]").forEach((slot) => {
+  const b = BLIPS.find((o) => o.id === slot.dataset.mini);
+  if (!b) return;
+  const s = 18 / OUTER;
+  const [x, y] = place(b, s, 20, 20);
+  const svg = el("svg", { viewBox: "0 0 40 40", "aria-hidden": "true" });
+  el("circle", { cx: 20, cy: 20, r: 18, fill: "none", stroke: "#1F6B59", "stroke-width": 1.5 }, svg);
+  el("circle", { cx: 20, cy: 20, r: 185 * s, fill: "none", stroke: "#2E8B74", "stroke-width": 0.75, opacity: 0.6 }, svg);
+  el("circle", { cx: 20, cy: 20, r: 100 * s, fill: "none", stroke: "#2E8B74", "stroke-width": 0.75, opacity: 0.6 }, svg);
+  el("line", { x1: 20, y1: 2, x2: 20, y2: 38, stroke: "#2E8B74", "stroke-width": 0.75, opacity: 0.6 }, svg);
+  el("line", { x1: 2, y1: 20, x2: 38, y2: 20, stroke: "#2E8B74", "stroke-width": 0.75, opacity: 0.6 }, svg);
+  el("circle", { cx: x, cy: y, r: 3.4, fill: b.ring === 0 ? "#D92D4B" : "#13202A" }, svg);
+  slot.appendChild(svg);
+});
+
+/* ---------- ThreatRadar test ticks ---------- */
+
+const ticks = document.getElementById("ticks");
+for (let i = 0; i < 39; i++) ticks.appendChild(document.createElement("i"));
+
+/* ---------- optional contact links ---------- */
+
+const links = document.getElementById("contactLinks");
+function addLink(text, href, download) {
+  const li = document.createElement("li");
+  const a = document.createElement("a");
+  a.textContent = text; a.href = href;
+  if (download) a.setAttribute("download", "");
+  li.appendChild(a); links.appendChild(li);
+}
+if (CONTACT.email) addLink("Email", "mailto:" + CONTACT.email);
+if (CONTACT.cv) addLink("Download CV", CONTACT.cv, true);
+</script>
+</body>
+</html>
